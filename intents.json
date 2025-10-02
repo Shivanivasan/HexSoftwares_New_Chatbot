@@ -1,0 +1,18 @@
+{
+  "greetings": {
+    "examples": ["hello", "hi", "hey", "good morning"],
+    "responses": ["Hello!", "Hi there!", "Hey! How can I help you?"]
+  },
+  "goodbye": {
+    "examples": ["bye", "see you", "goodbye"],
+    "responses": ["Goodbye!", "See you later!"]
+  },
+  "help": {
+    "examples": ["help me", "i need support", "can you help me?"],
+    "responses": ["Sure, what do you need help with?", "I am here to assist you!"]
+  },
+  "thanks": {
+    "examples": ["thank you", "thanks", "thanks a lot"],
+    "responses": ["You’re welcome!", "Anytime!", "Glad to help!"]
+  }
+}

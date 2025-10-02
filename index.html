@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Advanced Secure Chatbot</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #d4edda;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        #chatContainer {
+            background-color: #ffffff;
+            width: 550px;
+            height: 700px;
+            border-radius: 20px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header with call & lock */
+        #header {
+            background-color: #28a745;
+            color: white;
+            padding: 15px;
+            font-size: 22px;
+            text-align: center;
+            position: relative;
+        }
+        #header .fa-lock { position: absolute; right: 100px; top: 18px; font-size: 16px; }
+        #header .fa-phone { position: absolute; right: 15px; top: 18px; font-size: 16px; cursor: pointer; }
+
+        /* Story section */
+        #storySection {
+            background-color: #e6f2e6;
+            padding: 10px;
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+        }
+        .story {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #fff;
+            border: 2px solid #28a745;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        #chatArea {
+            flex: 1;
+            padding: 15px;
+            background-color: #f8f9fa;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message {
+            padding: 12px 18px;
+            margin: 10px 0;
+            border-radius: 25px;
+            max-width: 75%;
+            clear: both;
+            word-wrap: break-word;
+            position: relative;
+        }
+
+        .user { background-color: #dcf8c6; align-self: flex-end; }
+        .bot { background-color: #ffffff; border: 1px solid #ccc; align-self: flex-start; }
+
+        .timestamp { font-size: 10px; color: gray; margin-top: 4px; }
+        .lastSeen { font-size: 11px; color: #555; margin-bottom: 5px; text-align: right; }
+
+        /* Input area */
+        #inputArea {
+            display: flex;
+            flex-direction: column;
+            padding: 10px 15px;
+            border-top: 1px solid #ccc;
+            background-color: #e6f2e6;
+        }
+
+        #controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+
+        .emoji-btn, .sticker-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        #userInput {
+            flex: 1;
+            padding: 10px 15px;
+            border-radius: 25px;
+            border: 1px solid #ccc;
+            outline: none;
+            font-size: 16px;
+        }
+
+        #sendBtn {
+            padding: 10px 18px;
+            margin-left: 10px;
+            border: none;
+            border-radius: 25px;
+            background-color: #28a745;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        #sendBtn:hover { background-color: #218838; }
+
+        /* Scrollbar */
+        #chatArea::-webkit-scrollbar { width: 8px; }
+        #chatArea::-webkit-scrollbar-thumb { background-color: rgba(0,0,0,0.2); border-radius: 4px; }
+
+        /* Emoji stickers */
+        .emoji { font-size: 22px; margin-left: 5px; cursor: pointer; }
+        .sticker { width: 50px; height: 50px; cursor: pointer; margin-right: 5px; }
+    </style>
+</head>
+<body>
+    <div id="chatContainer">
+        <div id="header">
+            Secure Chatbot <i class="fa-solid fa-lock"></i> <i class="fa-solid fa-phone" title="Call"></i>
+        </div>
+
+        <!-- Story section -->
+        <div id="storySection">
+            <div class="story">😊</div>
+            <div class="story">🤖</div>
+            <div class="story">🎉</div>
+            <div class="story">💬</div>
+        </div>
+
+        <!-- Last seen for bot -->
+        <div class="lastSeen">Bot last seen: <span id="lastSeenTime">Just now</span></div>
+
+        <div id="chatArea"></div>
+
+        <!-- Input area -->
+        <div id="inputArea">
+            <div id="controls">
+                <button class="emoji-btn">😊</button>
+                <button class="emoji-btn">😂</button>
+                <button class="emoji-btn">👍</button>
+                <button class="sticker-btn">🎁</button>
+                <button class="sticker-btn">🎈</button>
+            </div>
+            <div style="display:flex;">
+                <input type="text" id="userInput" placeholder="Type a message...">
+                <button id="sendBtn"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const emojis = ["😊","😂","👍","🎉","💡","🤖","💬"];
+        const stickers = ["🎁","🎈","🎊","🎯","🍕","🍦"];
+
+        function getTime() {
+            const d = new Date();
+            return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+        }
+
+        function randomEmoji() { return emojis[Math.floor(Math.random() * emojis.length)]; }
+        function randomSticker() { return stickers[Math.floor(Math.random() * stickers.length)]; }
+
+        function updateLastSeen() {
+            $("#lastSeenTime").text(getTime());
+        }
+
+        function sendMessage(msg=null) {
+            if(msg===null) msg = $("#userInput").val().trim();
+            if(msg === "") return;
+
+            // User message
+            $("#chatArea").append('<div class="message user">' + msg +
+                                  '<div class="timestamp">' + getTime() + ' 📨</div></div>');
+
+            $.post("/get", { msg: msg }, function(data){
+                // Bot response
+                $("#chatArea").append('<div class="message bot">' + data.response + ' <span class="emoji">' + randomEmoji() + '</span>' +
+                                      '<div class="timestamp">' + getTime() + ' 🔒</div></div>');
+                $("#chatArea").scrollTop($("#chatArea")[0].scrollHeight);
+                updateLastSeen();
+            });
+
+            $("#userInput").val("").focus();
+        }
+
+        // Input events
+        $("#sendBtn").click(()=>sendMessage());
+        $("#userInput").keypress(function(e){ if(e.which == 13) sendMessage(); });
+
+        // Emoji & sticker clicks
+        $(".emoji-btn").click(function(){ sendMessage($(this).text()); });
+        $(".sticker-btn").click(function(){ sendMessage($(this).text()); });
+
+        // Story clicks
+        $(".story").click(function(){ sendMessage("Story clicked: " + $(this).text()); });
+    </script>
+</body>
+</html>
